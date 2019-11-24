@@ -1,4 +1,6 @@
-﻿using System;
+﻿//Sarah Ben Soussan 001475614
+//Tehila Gaon 315136952
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,80 +8,83 @@ using System.Threading.Tasks;
 
 namespace targil2
 {
-    class HostingUnit: IComparable
+    class HostingUnit : IComparable
     {
-        private int totalBusy;
-        private static long stSerialKey=10000000;
-        private long HostingUnitKey;
-        private bool [,] Diary;
+        private int totalBusy; //The number of busy days per year
+        private static long stSerialKey = 10000000;   // a running ID number
+        private bool[,] Diary; //The matrix
 
-        public long HostingUnitKey1 { get => HostingUnitKey; set => HostingUnitKey = value; }
+        public long HostingUnitKey1 { get; set; } //the specific stSerialKey to this HostingUnit
 
-        HostingUnit()
+        //c-tor
+        public HostingUnit()
         {
             HostingUnitKey1 = stSerialKey++;
             Diary = new bool[12, 31];
         }
-        public bool ApprovedRequest (GuestRequest guestReq)
+
+        //indexer
+        public bool this[DateTime date]  
         {
-            int eMonth = guestReq.EntryDate1.Month;
-            int eDay = guestReq.EntryDate1.Day;
-
-            int rMonth = guestReq.ReleaseDate1.Month;
-            int rDay = guestReq.ReleaseDate1.Day;
-
-            int period = (rMonth - eMonth) * 31 + (rDay - eDay);
-            int day = eDay;
-            int month = eMonth;
-            for(int i=0; i<period; i++)
+            get
             {
-                if (Diary[month-1, day-1])
+                return Diary[date.Month - 1, date.Day - 1];
+            }
+            set
+            {
+                Diary[date.Month - 1, date.Day - 1] = value;
+            }
+        }
+        
+        //the function checks if all the days are free and synchronizes it 
+        public bool ApprovedRequest(GuestRequest guestReq)
+        {
+            DateTime eDate = guestReq.EntryDate1;
+            DateTime rDate = guestReq.ReleaseDate1;
+
+            DateTime date = eDate;
+            while (date != rDate)
+            {
+                if (this[date])
                 {
                     guestReq.IsApproved = false;
                     return false;
                 }
-                month = month + day / 30;
-                day = (day + 1) % 31;
+                date = date.AddDays(1); //adding a day 
             }
-            for (int i = 0; i < period-1; i++)
+            while (eDate != rDate)
             {
-                Diary[eMonth - 1, eDay - 1] = true;
-                totalBusy++; 
-                eMonth = eMonth + eDay / 30;
-                eDay = (eDay + 1) % 31;
+                this[eDate] = true;
+                totalBusy++;  //counting the number of 'true' values
+                eDate = eDate.AddDays(1);
             }
-
             guestReq.IsApproved = true;
             return true;
         }
 
-        public int CompareTo(object obj)
+        public int CompareTo(object obj) //The function determines the preference for sorting, according to the totalbusy value
         {
             HostingUnit hostU = (HostingUnit)obj;
             return totalBusy.CompareTo(hostU.totalBusy);
         }
-        new void ToString()
+        public new void ToString()  //the function prints the entry and release dates 
         {
-            int month = 0;
-            int day = 0;
+            DateTime yesterday, today;
+            today = new DateTime(2020, 1, 1);
             Console.WriteLine(HostingUnitKey1);
-            bool yesterday, today = Diary[month, day];
-            if (today)
-                Console.WriteLine(" Entry Date {0}/{1} ", day+1, month+1);
-            while (month<12)
+            if (this[today])
+               Console.WriteLine(" Entry Date {0}/{1}/2020 ", today.Day, today.Month);
+            while (today.Year==2020)
             {
-                yesterday = today;
-                month = month + day / 30;
-                day = (day + 1) % 31;
-                today= Diary[month, day];
-                if(today&&!yesterday)
-                    Console.WriteLine(" Entry Date {0}/{1} ", day + 1, month + 1);
-                if(!today&&yesterday)
-                    Console.WriteLine(" Release Date {0}/{1} ", day + 1, month + 1);
+                yesterday = today; 
+                today = today.AddDays(1);
+                if (this[today] && !this[yesterday])
+                    Console.WriteLine(" Entry Date {0}/{1}/2020 ", today.Day, today.Month);
+                if (!this[today] && this[yesterday])
+                    Console.WriteLine(" Release Date {0}/{1}/2020 ", today.Day, today.Month);
             }
         }
         public int GetAnnualBusyDays() { return totalBusy; }
-        public float GetAnnualBusyPercentage() { return (totalBusy / 31 * 12) * 100; }
+        public float GetAnnualBusyPercentage() { return (totalBusy / 372) * 100; } 
     }
 }
-  

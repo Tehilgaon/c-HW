@@ -15,19 +15,19 @@ namespace targil2
         private static GuestRequest CreateRandomRequest()
         {
             GuestRequest gs = new GuestRequest();
-            DateTime date, entryDate = new DateTime();
             try
             {
-                date = new DateTime(2020, rand.Next(1, 13), rand.Next(1, 32));
-                entryDate = date;
+                DateTime entryDate = new DateTime(2020, rand.Next(1, 13), rand.Next(1, 32));
+                int period = rand.Next(2, 11);
+                DateTime releaseDate = entryDate.AddDays(period);
+                while (releaseDate.Year != 2020) { releaseDate = releaseDate.AddDays(-1); }
+                gs.EntryDate1 = entryDate;
+                gs.ReleaseDate1 = releaseDate;
             }
-            catch (Exception e) {CreateRandomRequest(); } //in a case the random numbers are not a real date
-            int period = rand.Next(2, 11);
-            DateTime releaseDate = entryDate.AddDays(period);
-            gs.EntryDate1 = entryDate;
-            gs.ReleaseDate1 = releaseDate;
+            catch (Exception e) { CreateRandomRequest(); }
             return gs;
         }
+
         static void Main(string[] args)
         {
             List<Host> lsHosts;
